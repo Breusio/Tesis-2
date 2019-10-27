@@ -1,0 +1,34 @@
+int limite;
+
+void setup() {
+
+  Serial.begin(9600);
+  pinMode(0, INPUT); // Valor digital sensor
+  pinMode(11, OUTPUT);
+  pinMode(12, OUTPUT);
+  pinMode(13, OUTPUT);
+}
+
+void loop() {
+
+  limite = analogRead(0);
+  Serial.println("Valor analógico: ");
+  Serial.println(limite);
+  
+   if(limite < 140){
+      digitalWrite(11, HIGH); 
+      digitalWrite(12, LOW); 
+      digitalWrite(13, LOW);
+   }
+   else if(limite < 230){
+      digitalWrite(12, HIGH);
+      digitalWrite(11, LOW); 
+      digitalWrite(13, LOW);
+   }
+   else{
+      digitalWrite(13, HIGH);
+      digitalWrite(12, LOW); 
+      digitalWrite(11, LOW);
+   }
+  delay (1000); 
+}
