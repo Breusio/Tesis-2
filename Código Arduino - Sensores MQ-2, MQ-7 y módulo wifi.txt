@@ -1,0 +1,92 @@
+#include <SoftwareSerial.h>
+#define RX 11
+#define TX 10
+String AP = "XXXXXXXX";  	//AP de la red wifi
+String PASS = "XXXXXXXXXX;	//clave de la red wifi
+String API = "XXXXXXXXXXXX";  	//API KEY
+String HOST = "api.thingspeak.com";
+String PORT = "80";
+String field1 = "field1";
+String field2 = "field2";
+int countTrueCommand;
+int countTimeCommand; 
+boolean found = false; 
+int valSensor1 = 1;
+int valSensor2 = 1;
+
+int adc_mq = 0;			//Sensor MQ-2
+int limite = 1;			//Sensor MQ-7
+
+SoftwareSerial esp8266(RX,TX); 
+ 
+  
+void setup() {
+  Serial.begin(9600);
+  esp8266.begin(115200);
+  sendCommand("AT",5,"OK");
+  sendCommand("AT+CWMODE=1",5,"OK");
+  sendCommand("AT+CWJAP=\""+ AP +"\",\""+ PASS +"\"",20,"OK");
+}
+void loop() {
+ valSensor1 = getSensorData();
+ //valSensor = analogRead(a0);
+ String getData = "GET /update?api_key="+ API +"&"+ field1 +"="+String(valSensor1);
+ sendCommand("AT+CIPMUX=1",5,"OK");
+ sendCommand("AT+CIPSTART=0,\"TCP\",\""+ HOST +"\","+ PORT,15,"OK");
+ sendCommand("AT+CIPSEND=0," +String(getData.length()+4),4,">");
+ esp8266.println(getData);delay(1500);countTrueCommand++;
+ sendCommand("AT+CIPCLOSE=0",5,"OK");
+
+ valSensor2 = getSensorDatas();
+ //valSensor = analogRead(a0);
+ getData = "GET /update?api_key="+ API +"&"+ field2 +"="+String(valSensor2);
+ sendCommand("AT+CIPMUX=1",5,"OK");
+ sendCommand("AT+CIPSTART=0,\"TCP\",\""+ HOST +"\","+ PORT,15,"OK");
+ sendCommand("AT+CIPSEND=0," +String(getData.length()+4),4,">");
+ esp8266.println(getData);delay(1500);countTrueCommand++;
+ sendCommand("AT+CIPCLOSE=0",5,"OK");
+}
+int getSensorData(){
+  adc_mq = analogRead(0);
+  Serial.println(adc_mq);
+  return adc_mq;
+}
+
+int getSensorDatas(){
+   limite = analogRead(1);
+   Serial.println(limite);
+   return limite;
+}
+void sendCommand(String command, int maxTime, char readReplay[]) {
+  Serial.print(countTrueCommand);
+  Serial.print(". at command => ");
+  Serial.print(command);
+  Serial.print(" ");
+  while(countTimeCommand < (maxTime*1))
+  {
+    esp8266.println(command);//at+cipsend
+    if(esp8266.find(readReplay))//ok
+    {
+      found = true;
+      break;
+    }
+  
+    countTimeCommand++;
+  }
+  
+  if(found == true)
+  {
+    Serial.println("OK");
+    countTrueCommand++;
+    countTimeCommand = 0;
+  }
+  
+  if(found == false)
+  {
+    Serial.println("Fail");
+    countTrueCommand = 0;
+    countTimeCommand = 0;
+  }
+  
+  found = false;
+ }
