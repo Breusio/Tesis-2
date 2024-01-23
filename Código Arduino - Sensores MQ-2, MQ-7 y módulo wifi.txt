@@ -14,8 +14,8 @@ boolean found = false;
 int valSensor1 = 1;
 int valSensor2 = 1;
 
-int adc_mq = 0;			//Sensor MQ-2
-int limite = 1;			//Sensor MQ-7
+int adc_mq = 0;			//Sensor MQ-7
+int limite = 1;			//Sensor MQ-135
 
 SoftwareSerial esp8266(RX,TX); 
  
